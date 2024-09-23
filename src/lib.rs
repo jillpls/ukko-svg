@@ -60,7 +60,7 @@ pub trait SvgElement {
     }
 }
 
-pub trait Attribute : Sized {
+pub trait Attribute: Sized {
     fn key(&self) -> String;
     fn value(&self) -> String;
 
@@ -87,14 +87,14 @@ impl Attribute for (String, String) {
 
 pub enum Color {
     String(String),
-    Code(String)
+    Code(String),
 }
 
 impl Display for Color {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            Color::String(s) => { s.clone() }
-            Color::Code(c) => { c.clone() }
+            Color::String(s) => s.clone(),
+            Color::Code(c) => c.clone(),
         };
         write!(f, "{}", s)
     }
@@ -103,7 +103,7 @@ impl Display for Color {
 pub enum Fill {
     Color(Color),
     Url(String),
-    Custom(String)
+    Custom(String),
 }
 
 impl Attribute for Fill {
@@ -113,14 +113,16 @@ impl Attribute for Fill {
 
     fn value(&self) -> String {
         match self {
-            Fill::Color(c) => { c.to_string() }
-            Fill::Url(s) => { s.clone()}
-            Fill::Custom(s) => { s.clone() }
+            Fill::Color(c) => c.to_string(),
+            Fill::Url(s) => s.clone(),
+            Fill::Custom(s) => s.clone(),
         }
     }
 
     fn from_key_value(kv: (String, String)) -> UkkoResult<Self> {
-        if kv.0.to_ascii_lowercase() != "fill" { return Err(UkkoError::TODO)}
+        if kv.0.to_ascii_lowercase() != "fill" {
+            return Err(UkkoError::TODO);
+        }
         Ok(Self::Custom(kv.1)) // TODO: maybe check what kind of things are happening here
     }
 }

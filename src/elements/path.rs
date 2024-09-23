@@ -139,19 +139,13 @@ impl PathCommand {
 
     fn tuple_from_str(str: &str) -> UkkoResult<(f32, f32)> {
         let splits = str.trim().split(',').collect::<Vec<_>>();
-        Ok((
-            splits
-                .get(0)
-                .ok_or(UkkoError::parse("Not a tuple."))?
-                .parse::<f32>()?,
-            splits
-                .get(1)
-                .ok_or(UkkoError::parse("Not a tuple."))?
-                .parse::<f32>()?,
-        ))
+        if splits.len() != 2 {
+            return Err(UkkoError::parse("Not a tuple."));
+        }
+        Ok((splits[1].parse::<f32>()?, splits[1].parse::<f32>()?))
     }
 
-    pub fn from_str(str: &str) -> Result<Self, UkkoError> {
+    pub fn parse_from_str(str: &str) -> Result<Self, UkkoError> {
         let str = str.trim();
         let splits = str.split_whitespace().collect::<Vec<_>>();
         if splits.is_empty() || splits[0].len() > 1 {
@@ -328,7 +322,7 @@ impl Display for PathCommand {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Default)]
 pub struct PathShape {
     pub elements: Vec<PathCommand>,
 }
@@ -351,11 +345,11 @@ impl PathShape {
         self
     }
 
-    pub fn from_str(str: &str) -> UkkoResult<Self> {
+    pub fn parse_from_str(str: &str) -> UkkoResult<Self> {
         let chars = &str.matches(|c: char| c.is_alphabetic()).collect::<Vec<_>>();
         let splits = &str.split(|c: char| c.is_alphabetic()).collect::<Vec<_>>()[1..];
         let splits = splits
-            .into_iter()
+            .iter()
             .zip(chars)
             .map(|(a, b)| format!("{} {}", b.trim(), a.trim()).trim().to_string())
             .collect::<Vec<_>>();
@@ -363,7 +357,7 @@ impl PathShape {
         Ok(Self {
             elements: splits
                 .into_iter()
-                .map(|s| PathCommand::from_str(&s))
+                .map(|s| PathCommand::parse_from_str(&s))
                 .collect::<UkkoResult<_>>()?,
         })
     }
@@ -379,8 +373,10 @@ impl Attribute for PathShape {
     }
 
     fn from_key_value(kv: (String, String)) -> UkkoResult<Self> {
-        if kv.0.to_ascii_lowercase() != "d" { return Err(UkkoError::TODO); }
-        Self::from_str(kv.1.as_str())
+        if kv.0.to_ascii_lowercase() != "d" {
+            return Err(UkkoError::TODO);
+        }
+        Self::parse_from_str(kv.1.as_str())
     }
 }
 
@@ -433,7 +429,7 @@ mod tests {
 
     #[test]
     fn test_to_xml() {
-        let shape = PathShape::from_str("M 10,10 Z").unwrap().to_path();
+        let shape = PathShape::parse_from_str("M 10,10 Z").unwrap().to_path();
         let node = shape.to_xml_node();
         let mut buf = BufWriter::new(Vec::new());
         node.as_element().unwrap().write(&mut buf).unwrap();
@@ -448,98 +444,98 @@ mod tests {
     #[test]
     fn test_shape_parse() {
         let c_str = "M 10,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(command, PathCommand::move_to((10., 10.)));
         let c_str = "L 10,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(command, PathCommand::line_to((10., 10.)));
         let c_str = "H 10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(command, PathCommand::horizontal_line_to(10.));
         let c_str = "V 10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(command, PathCommand::vertical_line_to(10.));
         let c_str = "C 10,10 10,10 3.5,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(
             command,
             PathCommand::cubic_bezier_curve((3.5, 10.), (10., 10.), (10., 10.))
         );
         let c_str = "S 10,10 3.5,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(
             command,
             PathCommand::cubic_bezier_curve_smooth((3.5, 10.), (10., 10.))
         );
         let c_str = "Q 10,10 3.5,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(
             command,
             PathCommand::quadratic_bezier_curve((3.5, 10.), (10., 10.))
         );
         let c_str = "T 3.5,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(
             command,
             PathCommand::quadratic_bezier_curve_smooth((3.5, 10.))
         );
         let c_str = "A 1 1 1 0 1 3.5,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(
             command,
             PathCommand::elliptical_arc_curve((3.5, 10.), 1., 1., 1., false, true)
         );
         let c_str = "Z";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(command, PathCommand::close());
 
         let c_str = "m 10,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(command, PathCommand::move_to((10., 10.)).relative());
         let c_str = "l 10,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(command, PathCommand::line_to((10., 10.)).relative());
         let c_str = "h 10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(command, PathCommand::horizontal_line_to(10.).relative());
         let c_str = "v 10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(command, PathCommand::vertical_line_to(10.).relative());
         let c_str = "c 10,10 10,10 3.5,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(
             command,
             PathCommand::cubic_bezier_curve((3.5, 10.), (10., 10.), (10., 10.)).relative()
         );
         let c_str = "s 10,10 3.5,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(
             command,
             PathCommand::cubic_bezier_curve_smooth((3.5, 10.), (10., 10.)).relative()
         );
         let c_str = "q 10,10 3.5,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(
             command,
             PathCommand::quadratic_bezier_curve((3.5, 10.), (10., 10.)).relative()
         );
         let c_str = "t 3.5,10";
-        let command = PathCommand::from_str(c_str).unwrap();
+        let command = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(
             command,
             PathCommand::quadratic_bezier_curve_smooth((3.5, 10.)).relative()
         );
         let c_str = "a 1 1 1 0 1 3.5,10";
-        let command1 = PathCommand::from_str(c_str).unwrap();
+        let command1 = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(
             command1,
             PathCommand::elliptical_arc_curve((3.5, 10.), 1., 1., 1., false, true).relative()
         );
         let c_str = "z";
-        let command2 = PathCommand::from_str(c_str).unwrap();
+        let command2 = PathCommand::parse_from_str(c_str).unwrap();
         assert_eq!(command2, PathCommand::close().relative());
         let c_str = "a 1 1 1 0 1 3.5,10. z";
-        let shape = PathShape::from_str(c_str).unwrap();
+        let shape = PathShape::parse_from_str(c_str).unwrap();
         assert_eq!(
             shape,
             PathShape::new().with_commands(vec![command1, command2])

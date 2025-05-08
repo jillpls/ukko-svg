@@ -2,8 +2,8 @@ use crate::SvgElement;
 use std::collections::HashMap;
 
 pub struct Ellipse {
-    center: (f32, f32),
-    radius: (f32, f32),
+    center: (f32, f32), // cx, cy
+    radius: (f32, f32), // rx, ry
     attributes: HashMap<String, String>,
     value: Option<String>,
 }

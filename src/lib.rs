@@ -138,7 +138,7 @@ pub struct Color {
     pub b: f32,
 }
 
-impl From<[u8;3]> for Color {
+impl From<[u8; 3]> for Color {
     fn from(value: [u8; 3]) -> Self {
         Self::from_rgb(value[0], value[1], value[2])
     }
@@ -148,21 +148,25 @@ impl FromStr for Color {
     type Err = ();
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        if value.len() < 6 || value.len() > 7 { return Err(()); }
+        if value.len() < 6 || value.len() > 7 {
+            return Err(());
+        }
         if value.len() == 7 {
             if value.chars().next() != Some('#') {
                 return Err(());
             }
-            <[u8;3]>::from_hex(&value[1..])
+            <[u8; 3]>::from_hex(&value[1..])
         } else {
-            <[u8;3]>::from_hex(&value)
-        }.map_err(|_| ()).map(|v| v.into())
+            <[u8; 3]>::from_hex(&value)
+        }
+        .map_err(|_| ())
+        .map(|v| v.into())
     }
 }
 
-impl Into<[u8;3]> for Color {
+impl Into<[u8; 3]> for Color {
     fn into(self) -> [u8; 3] {
-        [to_hex_int(self.r),to_hex_int(self.g),to_hex_int(self.b)]
+        [to_hex_int(self.r), to_hex_int(self.g), to_hex_int(self.b)]
     }
 }
 

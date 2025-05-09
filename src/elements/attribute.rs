@@ -1,9 +1,15 @@
+use crate::elements::value::display::{DisplayBox, DisplayInternal, DisplayLegacy, DisplayListItem};
+use crate::elements::value::display::DisplayOutsideInside;
 use std::fmt::{Display, Formatter};
-use crate::elements::value::{BasicShape, BeginValue, GeometryBox, Length, LengthPercentage};
+use crate::elements::value::{BasicShape, BeginValue, ClockValue, GeometryBox, Length, LengthPercentage};
 use serde::{Deserialize, Serialize};
 use crate::elements::value::color::CssColor;
 
 pub enum Attribute {}
+
+fn concat_str_list<T : Display>(input: &[T], separator: &str) -> String {
+    input.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(separator)
+}
 
 pub trait FloatAttr {
     fn float_value(&self) -> f64;
@@ -668,3 +674,187 @@ impl Attr for Cy {
         self.0.to_string()
     }
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct D(String); // TODO: Path
+
+impl Attr for D {
+    fn name(&self) -> String { "d".to_string() }
+
+    fn value(&self) -> String { self.0.clone() }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Data(String, String);
+
+impl Attr for Data {
+    fn name(&self) -> String { format!("data-{}", self.0)}
+
+    fn value(&self) -> String { self.1.clone() }
+}
+
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub enum Decoding {
+    Sync,
+    Async,
+    #[default]
+    Auto,
+}
+
+impl Attr for Decoding {
+    fn name(&self) -> String { "decoding".to_string() }
+
+    fn value(&self) -> String {
+        use Decoding::*;
+        match self {
+        Sync => "sync",
+        Async => "async",
+        Auto => "auto"
+    }.to_string() }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct DiffuseConstant(f64);
+
+impl Default for DiffuseConstant {
+    fn default() -> Self { DiffuseConstant(1.) }
+}
+
+impl Attr for DiffuseConstant {
+    fn name(&self) -> String { "diffuseConstant".to_string() }
+
+    fn value(&self) -> String { self.0.to_string() }
+}
+
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub enum Direction {
+    #[default]
+    Ltr,
+    Rtl
+}
+
+impl Attr for Direction {
+    fn name(&self) -> String { "direction".to_string() }
+
+    fn value(&self) -> String {
+        use Direction::*;
+        match self {
+        Ltr => "ltr",
+        Rtl => "rtl"
+    }.to_string() }
+}
+
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum DisplayA {
+    OutsideInside(DisplayOutsideInside),
+    ListItem(DisplayListItem),
+    Internal(DisplayInternal),
+    Box(DisplayBox),
+    Legacy(DisplayLegacy),
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct Divisor(f64);
+
+impl Attr for Divisor {
+    fn name(&self) -> String { "divisor".to_string() }
+
+    fn value(&self) -> String { self.0.to_string() }
+}
+
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub enum DominantBaseline {
+    #[default]
+    Auto,
+    TextBottom,
+    Alphabetic,
+    Ideographic,
+    Middle,
+    Central,
+    Mathematical,
+    Hanging,
+    TextTop,
+}
+
+impl Attr for DominantBaseline {
+    fn name(&self) -> String { "dominant-baseline".to_string() }
+
+    fn value(&self) -> String {
+        match self {
+            DominantBaseline::Auto => { "auto" }
+            DominantBaseline::TextBottom => { "text-bottom" }
+            DominantBaseline::Alphabetic => { "alphabetic" }
+            DominantBaseline::Ideographic => { "ideographic" }
+            DominantBaseline::Middle => { "middle" }
+            DominantBaseline::Central => { "central" }
+            DominantBaseline::Mathematical => { "mathematical" }
+            DominantBaseline::Hanging => { "hanging" }
+            DominantBaseline::TextTop => { "text-top" }
+        }.to_string()
+    }
+}
+
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub enum Dur {
+    ClockValue(ClockValue),
+    Media,
+    #[default]
+    Indefinite
+}
+
+impl Attr for Dur {
+    fn name(&self) -> String {
+        "dur".to_string()
+    }
+
+    fn value(&self) -> String {
+        match self {
+            Dur::ClockValue(cv) => { cv.to_string() }
+            Dur::Media => { "media".to_string() }
+            Dur::Indefinite => { "indefinite".to_string() }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Dx {
+    Number(f64),
+    List(Vec<LengthPercentage>),
+}
+
+impl Attr for Dx {
+    fn name(&self) -> String {
+        "dx".to_string()
+    }
+
+    //noinspection DuplicatedCode
+    fn value(&self) -> String {
+        match self {
+            Dx::Number(n) => { n.to_string()}
+            Dx::List(l) => { concat_str_list(&l, " ")}
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Dy {
+    Number(f64),
+    List(Vec<LengthPercentage>),
+}
+
+impl Attr for Dy {
+    fn name(&self) -> String {
+        "dy".to_string()
+    }
+
+    //noinspection DuplicatedCode
+    fn value(&self) -> String {
+        match self {
+            Dy::Number(n) => { n.to_string()}
+            Dy::List(l) => { concat_str_list(&l, " ")}
+        }
+    }
+}
+
+

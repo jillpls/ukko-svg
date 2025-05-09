@@ -1,5 +1,6 @@
 pub mod position;
 pub mod color;
+pub mod display;
 
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};

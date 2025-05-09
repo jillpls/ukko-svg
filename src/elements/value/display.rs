@@ -1,12 +1,12 @@
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::fmt::Formatter;
-use serde::{Serialize, Deserialize};
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum DisplayOutside {
     Block,
     Inline,
-    RunIn
+    RunIn,
 }
 
 impl Display for DisplayOutside {
@@ -27,7 +27,7 @@ pub enum DisplayInside {
     Table,
     Flex,
     Grid,
-    Ruby
+    Ruby,
 }
 
 impl Display for DisplayInside {
@@ -47,7 +47,7 @@ impl Display for DisplayInside {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum DisplayInsideMath {
     Inside(DisplayInside),
-    Math
+    Math,
 }
 
 impl Display for DisplayInsideMath {
@@ -72,9 +72,9 @@ impl Display for DisplayOutsideInside {
         match self {
             OutsideInside(o, i) => {
                 write!(f, "{} {}", o, i)
-            },
-            Outside(o) => { o.fmt(f) }
-            Inside(i) => { i.fmt(f) }
+            }
+            Outside(o) => o.fmt(f),
+            Inside(i) => i.fmt(f),
         }
     }
 }
@@ -82,7 +82,7 @@ impl Display for DisplayOutsideInside {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum FlowOrRoot {
     Flow,
-    FlowRoot
+    FlowRoot,
 }
 
 impl Display for FlowOrRoot {
@@ -153,7 +153,7 @@ impl Display for DisplayInternal {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum DisplayBox {
     Contents,
-    None
+    None,
 }
 
 impl Display for DisplayBox {
@@ -171,7 +171,7 @@ pub enum DisplayLegacy {
     InlineBlock,
     InlineTable,
     InlineFlex,
-    InlineGrid
+    InlineGrid,
 }
 
 impl Display for DisplayLegacy {

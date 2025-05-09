@@ -1,12 +1,12 @@
-pub mod position;
 pub mod color;
 pub mod display;
+pub mod position;
 
+use crate::elements::value::position::Position;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::time::Duration;
 use time::OffsetDateTime;
-use crate::elements::value::position::Position;
 
 fn format_iso8601_extended(dt: OffsetDateTime) -> String {
     let format = time::format_description::parse(
@@ -334,7 +334,7 @@ impl Display for Event {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum BeginValue {
+pub enum BeginEndValue {
     Offset(ClockValue),
     SyncBase(String, BeginEnd, Option<SignedClockValue>),
     Event(String, Event, Option<SignedClockValue>),
@@ -344,35 +344,35 @@ pub enum BeginValue {
     Indefinite,
 }
 
-impl Display for BeginValue {
+impl Display for BeginEndValue {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let optional_cv = match self {
-            BeginValue::SyncBase(_, _, Some(cv))
-            | BeginValue::Event(_, _, Some(cv))
-            | BeginValue::Repeat(_, _, Some(cv))
-            | BeginValue::AccessKey(_, Some(cv)) => cv.to_string(),
+            BeginEndValue::SyncBase(_, _, Some(cv))
+            | BeginEndValue::Event(_, _, Some(cv))
+            | BeginEndValue::Repeat(_, _, Some(cv))
+            | BeginEndValue::AccessKey(_, Some(cv)) => cv.to_string(),
             _ => "".to_string(),
         };
         match self {
-            BeginValue::Offset(cv) => {
+            BeginEndValue::Offset(cv) => {
                 write!(f, "{}", cv)
             }
-            BeginValue::SyncBase(id, be, _) => {
+            BeginEndValue::SyncBase(id, be, _) => {
                 write!(f, "{}.{}{}", id, be, optional_cv)
             }
-            BeginValue::Event(id, ev, _) => {
+            BeginEndValue::Event(id, ev, _) => {
                 write!(f, "{}.{}{}", id, ev, optional_cv)
             }
-            BeginValue::Repeat(id, count, _) => {
+            BeginEndValue::Repeat(id, count, _) => {
                 write!(f, "{}.repeat({}){}", id, count, optional_cv)
             }
-            BeginValue::AccessKey(key, _) => {
+            BeginEndValue::AccessKey(key, _) => {
                 write!(f, "accessKey({}){}", key, optional_cv)
             }
-            BeginValue::WallclockSync(dt) => {
+            BeginEndValue::WallclockSync(dt) => {
                 write!(f, "wallclock({})", format_iso8601_extended(*dt))
             }
-            BeginValue::Indefinite => {
+            BeginEndValue::Indefinite => {
                 write!(f, "indefinite")
             }
         }
@@ -411,8 +411,12 @@ pub enum LengthPercentageAuto {
 impl Display for LengthPercentageAuto {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            LengthPercentageAuto::LengthPercentage(lp) => { write!(f, "{}", lp) }
-            LengthPercentageAuto::Auto => { write!(f, "auto") }
+            LengthPercentageAuto::LengthPercentage(lp) => {
+                write!(f, "{}", lp)
+            }
+            LengthPercentageAuto::Auto => {
+                write!(f, "auto")
+            }
         }
     }
 }
@@ -422,7 +426,12 @@ pub struct BorderRadius(LengthPercentage, Option<LengthPercentage>);
 
 impl Display for BorderRadius {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}{}", self.0, self.1.map(|v| format!(" {}", v)).unwrap_or_default())
+        write!(
+            f,
+            "{}{}",
+            self.0,
+            self.1.map(|v| format!(" {}", v)).unwrap_or_default()
+        )
     }
 }
 
@@ -444,7 +453,7 @@ pub enum BasicShapeRect {
     ),
     Rect(
         LengthPercentageAuto,
-       LengthPercentageAuto,
+        LengthPercentageAuto,
         LengthPercentageAuto,
         LengthPercentageAuto,
         Option<BorderRadius>,
@@ -471,13 +480,34 @@ impl Display for BasicShapeRect {
                         }
                     }
                 }
-                write!(f, "inset({}{})", result, br.map(|v| format!(" round {}", v)).unwrap_or_default())
+                write!(
+                    f,
+                    "inset({}{})",
+                    result,
+                    br.map(|v| format!(" round {}", v)).unwrap_or_default()
+                )
             }
             BasicShapeRect::Xywh(x, y, w, h, br) => {
-                write!(f, "xywh({} {} {} {}{})", x, y, w, h, br.map(|v| format!(" round {}", v)).unwrap_or_default())
+                write!(
+                    f,
+                    "xywh({} {} {} {}{})",
+                    x,
+                    y,
+                    w,
+                    h,
+                    br.map(|v| format!(" round {}", v)).unwrap_or_default()
+                )
             }
             BasicShapeRect::Rect(a, b, c, d, br) => {
-                write!(f, "rect({} {} {} {}{})", a, b, c, d, br.map(|v| format!(" round {}", v)).unwrap_or_default())
+                write!(
+                    f,
+                    "rect({} {} {} {}{})",
+                    a,
+                    b,
+                    c,
+                    d,
+                    br.map(|v| format!(" round {}", v)).unwrap_or_default()
+                )
             }
         }
     }
@@ -493,13 +523,24 @@ pub enum RadialExtent {
 
 impl Display for RadialExtent {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            RadialExtent::ClosestCorner => { "closest-corner" }
-            RadialExtent::ClosestSide => { "closest-side" }
-            RadialExtent::FarthestCorner => { "farthest-corner" }
-            RadialExtent::FarthestSide => { "farthest-side" }
-        })
-
+        write!(
+            f,
+            "{}",
+            match self {
+                RadialExtent::ClosestCorner => {
+                    "closest-corner"
+                }
+                RadialExtent::ClosestSide => {
+                    "closest-side"
+                }
+                RadialExtent::FarthestCorner => {
+                    "farthest-corner"
+                }
+                RadialExtent::FarthestSide => {
+                    "farthest-side"
+                }
+            }
+        )
     }
 }
 
@@ -512,26 +553,44 @@ pub enum RadialSize {
 
 impl Display for RadialSize {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            RadialSize::RadialExtent(re) => { re.to_string() }
-            RadialSize::Length(l) => { l.to_string() }
-            RadialSize::LengthPercentage(lp) => { lp.to_string()}
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                RadialSize::RadialExtent(re) => {
+                    re.to_string()
+                }
+                RadialSize::Length(l) => {
+                    l.to_string()
+                }
+                RadialSize::LengthPercentage(lp) => {
+                    lp.to_string()
+                }
+            }
+        )
     }
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum FillRule {
     NonZero,
-    EvenOdd
+    EvenOdd,
 }
 
 impl Display for FillRule {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            FillRule::NonZero => { "nonzero"}
-            FillRule::EvenOdd => { "evenodd" }
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                FillRule::NonZero => {
+                    "nonzero"
+                }
+                FillRule::EvenOdd => {
+                    "evenodd"
+                }
+            }
+        )
     }
 }
 
@@ -540,35 +599,64 @@ pub enum BasicShape {
     BasicShapeRect(BasicShapeRect),
     Circle(RadialSize, Option<Position>),
     Ellipse(RadialSize, Option<Position>),
-    Polygon(Option<FillRule>, Option<Length>, Option<Vec<(LengthPercentage, LengthPercentage)>>),
-    Path(Option<FillRule>, String)
+    Polygon(
+        Option<FillRule>,
+        Option<Length>,
+        Option<Vec<(LengthPercentage, LengthPercentage)>>,
+    ),
+    Path(Option<FillRule>, String),
 }
 
 impl Display for BasicShape {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            BasicShape::BasicShapeRect(bsr) => { write!(f, "{}", bsr) }
+            BasicShape::BasicShapeRect(bsr) => {
+                write!(f, "{}", bsr)
+            }
             BasicShape::Circle(rs, pos) => {
-                write!(f, "circle({}{})", rs, pos.map(|v| format!(" at {}", v)).unwrap_or_default())
+                write!(
+                    f,
+                    "circle({}{})",
+                    rs,
+                    pos.map(|v| format!(" at {}", v)).unwrap_or_default()
+                )
             }
             BasicShape::Ellipse(rs, pos) => {
-                write!(f, "ellipse({}{})", rs, pos.map(|v| format!(" at {}", v)).unwrap_or_default())
+                write!(
+                    f,
+                    "ellipse({}{})",
+                    rs,
+                    pos.map(|v| format!(" at {}", v)).unwrap_or_default()
+                )
             }
             BasicShape::Polygon(fr, rl, corners) => {
-                let mut result = fr.map(|v| format!("{}{}", v, if rl.is_some() { " "} else { ""})).unwrap_or_default();
+                let mut result = fr
+                    .map(|v| format!("{}{}", v, if rl.is_some() { " " } else { "" }))
+                    .unwrap_or_default();
                 if let Some(rl) = rl {
                     result.push_str(&rl.to_string());
                 }
-                if let Some(corners)= corners {
+                if let Some(corners) = corners {
                     if result.len() > 0 {
                         result.push(',');
                     }
-                    result.push_str(&corners.iter().map(|c| format!("{} {}", c.0, c.1)).collect::<Vec<_>>().join(" "));
+                    result.push_str(
+                        &corners
+                            .iter()
+                            .map(|c| format!("{} {}", c.0, c.1))
+                            .collect::<Vec<_>>()
+                            .join(" "),
+                    );
                 }
                 write!(f, "polygon({})", result)
             }
             BasicShape::Path(fr, s) => {
-                write!(f, "path({}{})", fr.map(|v| format!("{} ", v)).unwrap_or_default(), s)
+                write!(
+                    f,
+                    "path({}{})",
+                    fr.map(|v| format!("{} ", v)).unwrap_or_default(),
+                    s
+                )
             }
         }
     }
@@ -578,32 +666,45 @@ impl Display for BasicShape {
 pub enum VisualBox {
     ContentBox,
     PaddingBox,
-    BorderBox
+    BorderBox,
 }
 
 impl Display for VisualBox {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            VisualBox::ContentBox => { "content-box" }
-            VisualBox::PaddingBox => { "padding-box" }
-            VisualBox::BorderBox => { "border-box" }
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                VisualBox::ContentBox => {
+                    "content-box"
+                }
+                VisualBox::PaddingBox => {
+                    "padding-box"
+                }
+                VisualBox::BorderBox => {
+                    "border-box"
+                }
+            }
+        )
     }
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum ShapeBox {
     VisualBox(VisualBox),
-    MarginBox
+    MarginBox,
 }
 
 impl Display for ShapeBox {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            ShapeBox::VisualBox(vb) => { write!(f, "{}", vb)}
-            ShapeBox::MarginBox => { write!(f, "margin-box") }
+            ShapeBox::VisualBox(vb) => {
+                write!(f, "{}", vb)
+            }
+            ShapeBox::MarginBox => {
+                write!(f, "margin-box")
+            }
         }
-
     }
 }
 
@@ -617,13 +718,23 @@ pub enum GeometryBox {
 
 impl Display for GeometryBox {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}",
+        write!(
+            f,
+            "{}",
             match self {
-                GeometryBox::ShapeBox(sb) => { sb.to_string() }
-                GeometryBox::FillBox => { "fill-box".to_string() }
-                GeometryBox::StrokeBox => { "stroke-box".to_string() }
-                GeometryBox::ViewBox => { "view-box".to_string() }
+                GeometryBox::ShapeBox(sb) => {
+                    sb.to_string()
+                }
+                GeometryBox::FillBox => {
+                    "fill-box".to_string()
+                }
+                GeometryBox::StrokeBox => {
+                    "stroke-box".to_string()
+                }
+                GeometryBox::ViewBox => {
+                    "view-box".to_string()
+                }
             }
-            )
+        )
     }
 }

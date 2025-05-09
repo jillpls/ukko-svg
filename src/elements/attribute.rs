@@ -1,14 +1,22 @@
-use crate::elements::value::display::{DisplayBox, DisplayInternal, DisplayLegacy, DisplayListItem};
-use crate::elements::value::display::DisplayOutsideInside;
-use std::fmt::{Display, Formatter};
-use crate::elements::value::{BasicShape, BeginValue, ClockValue, GeometryBox, Length, LengthPercentage};
-use serde::{Deserialize, Serialize};
 use crate::elements::value::color::CssColor;
+use crate::elements::value::display::DisplayOutsideInside;
+use crate::elements::value::display::{
+    DisplayBox, DisplayInternal, DisplayLegacy, DisplayListItem,
+};
+use crate::elements::value::{
+    BasicShape, BeginEndValue, ClockValue, GeometryBox, Length, LengthPercentage,
+};
+use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 pub enum Attribute {}
 
-fn concat_str_list<T : Display>(input: &[T], separator: &str) -> String {
-    input.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(separator)
+fn concat_str_list<T: Display>(input: &[T], separator: &str) -> String {
+    input
+        .iter()
+        .map(|v| v.to_string())
+        .collect::<Vec<_>>()
+        .join(separator)
 }
 
 pub trait FloatAttr {
@@ -316,7 +324,7 @@ impl Attr for BaseProfile {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Begin(pub Vec<BeginValue>);
+pub struct Begin(pub Vec<BeginEndValue>);
 
 impl Attr for Begin {
     fn name(&self) -> String {
@@ -456,13 +464,15 @@ impl Attr for ClipPath {
 
     fn value(&self) -> String {
         match self {
-            ClipPath::Url(url) => { format!("url({})", url)}
-            ClipPath::BasicShape(bs) => { bs.to_string()}
-            ClipPath::GeometryBox(gb) => { gb.to_string()}
+            ClipPath::Url(url) => {
+                format!("url({})", url)
+            }
+            ClipPath::BasicShape(bs) => bs.to_string(),
+            ClipPath::GeometryBox(gb) => gb.to_string(),
             ClipPath::BasicShapeGeometryBox(bs, gb) => {
                 format!("{} {}", bs, gb)
             }
-            ClipPath::None => { "none".to_string() }
+            ClipPath::None => "none".to_string(),
         }
     }
 }
@@ -472,7 +482,7 @@ pub enum ClipRule {
     #[default]
     NonZero,
     EvenOdd,
-    Inherit
+    Inherit,
 }
 
 impl EnumAttr for ClipRule {}
@@ -484,10 +494,11 @@ impl Attr for ClipRule {
 
     fn value(&self) -> String {
         match self {
-            ClipRule::NonZero => { "nonzero" }
-            ClipRule::EvenOdd => { "evenodd" }
-            ClipRule::Inherit => { "inherit" }
-        }.to_string()
+            ClipRule::NonZero => "nonzero",
+            ClipRule::EvenOdd => "evenodd",
+            ClipRule::Inherit => "inherit",
+        }
+        .to_string()
     }
 }
 
@@ -495,7 +506,7 @@ impl Attr for ClipRule {
 pub enum ClipPathUnits {
     #[default]
     UserSpaceOnUse,
-    ObjectBoundingBox
+    ObjectBoundingBox,
 }
 
 impl EnumAttr for ClipPathUnits {}
@@ -507,9 +518,10 @@ impl Attr for ClipPathUnits {
 
     fn value(&self) -> String {
         match self {
-            ClipPathUnits::UserSpaceOnUse => { "userSpaceOnUse"}
-            ClipPathUnits::ObjectBoundingBox => { "objectBoundingBox" }
-        }.to_string()
+            ClipPathUnits::UserSpaceOnUse => "userSpaceOnUse",
+            ClipPathUnits::ObjectBoundingBox => "objectBoundingBox",
+        }
+        .to_string()
     }
 }
 
@@ -517,7 +529,7 @@ impl Attr for ClipPathUnits {
 pub enum Color {
     Color(CssColor),
     #[default]
-    Inherit
+    Inherit,
 }
 
 impl Attr for Color {
@@ -527,8 +539,8 @@ impl Attr for Color {
 
     fn value(&self) -> String {
         match self {
-            Color::Color(c) => { c.to_string() }
-            Color::Inherit => { "inherit".to_string() }
+            Color::Color(c) => c.to_string(),
+            Color::Inherit => "inherit".to_string(),
         }
     }
 }
@@ -538,7 +550,7 @@ pub enum ColorInterpolation {
     Auto,
     #[default]
     Srgb,
-    LinearRgb
+    LinearRgb,
 }
 
 impl Attr for ColorInterpolation {
@@ -548,10 +560,11 @@ impl Attr for ColorInterpolation {
 
     fn value(&self) -> String {
         match self {
-            ColorInterpolation::Auto => { "auto"}
-            ColorInterpolation::Srgb => { "sRGB"}
-            ColorInterpolation::LinearRgb => { "linearRGB"}
-        }.to_string()
+            ColorInterpolation::Auto => "auto",
+            ColorInterpolation::Srgb => "sRGB",
+            ColorInterpolation::LinearRgb => "linearRGB",
+        }
+        .to_string()
     }
 }
 #[derive(Copy, Clone, Default, Debug, Serialize, Deserialize)]
@@ -559,7 +572,7 @@ pub enum ColorInterpolationFilter {
     Auto,
     Srgb,
     #[default]
-    LinearRgb
+    LinearRgb,
 }
 
 impl Attr for ColorInterpolationFilter {
@@ -569,10 +582,11 @@ impl Attr for ColorInterpolationFilter {
 
     fn value(&self) -> String {
         match self {
-            ColorInterpolationFilter::Auto => { "auto"}
-            ColorInterpolationFilter::Srgb => { "sRGB"}
-            ColorInterpolationFilter::LinearRgb => { "linearRGB"}
-        }.to_string()
+            ColorInterpolationFilter::Auto => "auto",
+            ColorInterpolationFilter::Srgb => "sRGB",
+            ColorInterpolationFilter::LinearRgb => "linearRGB",
+        }
+        .to_string()
     }
 }
 
@@ -593,29 +607,65 @@ pub enum CursorType {
     WResize,
     Text,
     Wait,
-    Help
+    Help,
 }
 
 impl Display for CursorType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            CursorType::Auto => { "auto"}
-            CursorType::Crosshair => { "crosshair"}
-            CursorType::Default => { "default"}
-            CursorType::Pointer => { "pointer"}
-            CursorType::Move => { "move"}
-            CursorType::EResize => { "e-resize"}
-            CursorType::NeResize => { "ne-resize"}
-            CursorType::NwResize => { "nw-resize"}
-            CursorType::NResize => { "n-resize"}
-            CursorType::SeResize => { "se-resize"}
-            CursorType::SwResize => { "sw-resize"}
-            CursorType::SResize => { "s-resize"}
-            CursorType::WResize => { "w-resize"}
-            CursorType::Text => { "text"}
-            CursorType::Wait => { "wait"}
-            CursorType::Help => { "help"}
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                CursorType::Auto => {
+                    "auto"
+                }
+                CursorType::Crosshair => {
+                    "crosshair"
+                }
+                CursorType::Default => {
+                    "default"
+                }
+                CursorType::Pointer => {
+                    "pointer"
+                }
+                CursorType::Move => {
+                    "move"
+                }
+                CursorType::EResize => {
+                    "e-resize"
+                }
+                CursorType::NeResize => {
+                    "ne-resize"
+                }
+                CursorType::NwResize => {
+                    "nw-resize"
+                }
+                CursorType::NResize => {
+                    "n-resize"
+                }
+                CursorType::SeResize => {
+                    "se-resize"
+                }
+                CursorType::SwResize => {
+                    "sw-resize"
+                }
+                CursorType::SResize => {
+                    "s-resize"
+                }
+                CursorType::WResize => {
+                    "w-resize"
+                }
+                CursorType::Text => {
+                    "text"
+                }
+                CursorType::Wait => {
+                    "wait"
+                }
+                CursorType::Help => {
+                    "help"
+                }
+            }
+        )
     }
 }
 
@@ -624,17 +674,23 @@ pub struct ComplexCursor(Vec<String>, CursorType);
 
 impl Display for ComplexCursor {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut urls = self.0.iter().map(|v| v.to_string()).collect::<Vec<String>>().join(",");
-        if self.0.len() > 0 { urls.push(',')}
+        let mut urls = self
+            .0
+            .iter()
+            .map(|v| v.to_string())
+            .collect::<Vec<String>>()
+            .join(",");
+        if self.0.len() > 0 {
+            urls.push(',')
+        }
         write!(f, "{}{}", urls, self.1)
     }
 }
 
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Cursor {
     Complex(ComplexCursor),
-    Inherit
+    Inherit,
 }
 
 impl Attr for Cursor {
@@ -644,8 +700,8 @@ impl Attr for Cursor {
 
     fn value(&self) -> String {
         match self {
-            Cursor::Complex(cc) => { cc.to_string() }
-            Cursor::Inherit => { "inherit".to_string() }
+            Cursor::Complex(cc) => cc.to_string(),
+            Cursor::Inherit => "inherit".to_string(),
         }
     }
 }
@@ -676,21 +732,29 @@ impl Attr for Cy {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct D(String); // TODO: Path
+pub struct D(pub String); // TODO: Path
 
 impl Attr for D {
-    fn name(&self) -> String { "d".to_string() }
+    fn name(&self) -> String {
+        "d".to_string()
+    }
 
-    fn value(&self) -> String { self.0.clone() }
+    fn value(&self) -> String {
+        self.0.clone()
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Data(String, String);
+pub struct Data(pub String, pub String);
 
 impl Attr for Data {
-    fn name(&self) -> String { format!("data-{}", self.0)}
+    fn name(&self) -> String {
+        format!("data-{}", self.0)
+    }
 
-    fn value(&self) -> String { self.1.clone() }
+    fn value(&self) -> String {
+        self.1.clone()
+    }
 }
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
@@ -702,48 +766,61 @@ pub enum Decoding {
 }
 
 impl Attr for Decoding {
-    fn name(&self) -> String { "decoding".to_string() }
+    fn name(&self) -> String {
+        "decoding".to_string()
+    }
 
     fn value(&self) -> String {
         use Decoding::*;
         match self {
-        Sync => "sync",
-        Async => "async",
-        Auto => "auto"
-    }.to_string() }
+            Sync => "sync",
+            Async => "async",
+            Auto => "auto",
+        }
+        .to_string()
+    }
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct DiffuseConstant(f64);
+pub struct DiffuseConstant(pub f64);
 
 impl Default for DiffuseConstant {
-    fn default() -> Self { DiffuseConstant(1.) }
+    fn default() -> Self {
+        DiffuseConstant(1.)
+    }
 }
 
 impl Attr for DiffuseConstant {
-    fn name(&self) -> String { "diffuseConstant".to_string() }
+    fn name(&self) -> String {
+        "diffuseConstant".to_string()
+    }
 
-    fn value(&self) -> String { self.0.to_string() }
+    fn value(&self) -> String {
+        self.0.to_string()
+    }
 }
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub enum Direction {
     #[default]
     Ltr,
-    Rtl
+    Rtl,
 }
 
 impl Attr for Direction {
-    fn name(&self) -> String { "direction".to_string() }
+    fn name(&self) -> String {
+        "direction".to_string()
+    }
 
     fn value(&self) -> String {
         use Direction::*;
         match self {
-        Ltr => "ltr",
-        Rtl => "rtl"
-    }.to_string() }
+            Ltr => "ltr",
+            Rtl => "rtl",
+        }
+        .to_string()
+    }
 }
-
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum DisplayA {
@@ -755,12 +832,16 @@ pub enum DisplayA {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Divisor(f64);
+pub struct Divisor(pub f64);
 
 impl Attr for Divisor {
-    fn name(&self) -> String { "divisor".to_string() }
+    fn name(&self) -> String {
+        "divisor".to_string()
+    }
 
-    fn value(&self) -> String { self.0.to_string() }
+    fn value(&self) -> String {
+        self.0.to_string()
+    }
 }
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
@@ -778,20 +859,23 @@ pub enum DominantBaseline {
 }
 
 impl Attr for DominantBaseline {
-    fn name(&self) -> String { "dominant-baseline".to_string() }
+    fn name(&self) -> String {
+        "dominant-baseline".to_string()
+    }
 
     fn value(&self) -> String {
         match self {
-            DominantBaseline::Auto => { "auto" }
-            DominantBaseline::TextBottom => { "text-bottom" }
-            DominantBaseline::Alphabetic => { "alphabetic" }
-            DominantBaseline::Ideographic => { "ideographic" }
-            DominantBaseline::Middle => { "middle" }
-            DominantBaseline::Central => { "central" }
-            DominantBaseline::Mathematical => { "mathematical" }
-            DominantBaseline::Hanging => { "hanging" }
-            DominantBaseline::TextTop => { "text-top" }
-        }.to_string()
+            DominantBaseline::Auto => "auto",
+            DominantBaseline::TextBottom => "text-bottom",
+            DominantBaseline::Alphabetic => "alphabetic",
+            DominantBaseline::Ideographic => "ideographic",
+            DominantBaseline::Middle => "middle",
+            DominantBaseline::Central => "central",
+            DominantBaseline::Mathematical => "mathematical",
+            DominantBaseline::Hanging => "hanging",
+            DominantBaseline::TextTop => "text-top",
+        }
+        .to_string()
     }
 }
 
@@ -800,7 +884,7 @@ pub enum Dur {
     ClockValue(ClockValue),
     Media,
     #[default]
-    Indefinite
+    Indefinite,
 }
 
 impl Attr for Dur {
@@ -810,9 +894,9 @@ impl Attr for Dur {
 
     fn value(&self) -> String {
         match self {
-            Dur::ClockValue(cv) => { cv.to_string() }
-            Dur::Media => { "media".to_string() }
-            Dur::Indefinite => { "indefinite".to_string() }
+            Dur::ClockValue(cv) => cv.to_string(),
+            Dur::Media => "media".to_string(),
+            Dur::Indefinite => "indefinite".to_string(),
         }
     }
 }
@@ -831,8 +915,8 @@ impl Attr for Dx {
     //noinspection DuplicatedCode
     fn value(&self) -> String {
         match self {
-            Dx::Number(n) => { n.to_string()}
-            Dx::List(l) => { concat_str_list(&l, " ")}
+            Dx::Number(n) => n.to_string(),
+            Dx::List(l) => concat_str_list(&l, " "),
         }
     }
 }
@@ -851,10 +935,69 @@ impl Attr for Dy {
     //noinspection DuplicatedCode
     fn value(&self) -> String {
         match self {
-            Dy::Number(n) => { n.to_string()}
-            Dy::List(l) => { concat_str_list(&l, " ")}
+            Dy::Number(n) => n.to_string(),
+            Dy::List(l) => concat_str_list(&l, " "),
         }
     }
 }
 
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum EdgeMode {
+    Duplicate,
+    Wrap,
+    None,
+}
 
+impl Attr for EdgeMode {
+    fn name(&self) -> String {
+        "edgeMode".to_string()
+    }
+
+    fn value(&self) -> String {
+        match self {
+            EdgeMode::Duplicate => "duplicate",
+            EdgeMode::Wrap => "wrap",
+            EdgeMode::None => "none",
+        }
+        .to_string()
+    }
+}
+
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub struct Elevation(pub f64);
+
+impl Attr for Elevation {
+    fn name(&self) -> String {
+        "elevation".to_string()
+    }
+
+    fn value(&self) -> String {
+        self.0.to_string()
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct End(pub Vec<BeginEndValue>);
+
+impl Attr for End {
+    fn name(&self) -> String {
+        "end".to_string()
+    }
+
+    fn value(&self) -> String {
+        concat_str_list(&self.0, ";")
+    }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct Exponent(pub f64);
+
+impl Attr for Exponent {
+    fn name(&self) -> String {
+        "exponent".to_string()
+    }
+
+    fn value(&self) -> String {
+        self.0.to_string()
+    }
+}
